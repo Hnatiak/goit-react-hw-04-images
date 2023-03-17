@@ -39,21 +39,21 @@ class Modal extends Component {
       this.props;
 
     return createPortal(
-      <div className={css.backdrop} onClick={this.handleClickBackdrop}>
-        <div className={css.modal}>
-          <div className={css.wrapper}>
-            {title && <h1 className={css.title}>{title}</h1>}
-            <button className={css.button} type="button" onClick={onClose}>
-              <BsXLg className={css.icon} />
-            </button>
+        <div className={css.backdrop} onClick={this.handleClickBackdrop}>
+          <div className={css.modal}>
+            <div className={css.wrapper}>
+              {title && <h1 className={css.title}>{title}</h1>}
+              <button className={css.button} type="button" onClick={onClose}>
+                <BsXLg className={css.icon} />
+              </button>
+            </div>
+            <img
+              src={currentImageUrl}
+              alt={currentImageDescription}
+              loading="lazy"
+            />
           </div>
-          <img
-            src={currentImageUrl}
-            alt={currentImageDescription}
-            loading="lazy"
-          />
-        </div>
-      </div>,
+        </div>,
       modalRoot
     );
   }
