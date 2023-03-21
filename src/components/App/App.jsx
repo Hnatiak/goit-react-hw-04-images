@@ -137,41 +137,25 @@ class App extends Component {
 
         {images && <ImageGallery images={images} openModal={openModal} />}
 
-        {/* {isLoading ? (
-          <Loader />
+        {!this.state.query ? (
+          <div className={css.text}>Here is empty</div>
         ) : (
-          imagesOnPage >= 12 && imagesOnPage < totalImages && (
-            <div style={{ opacity: isLoading ? 0.5 : 1 }}>
-              <Button onNextFetch={() => {
-                this.setState({ isLoading: true });
-                setTimeout(() => {
-                  onNextFetch();
-                  this.setState({ isLoading: false });
-                }, 2000);
-              }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
-            </div> 
+          isLoading ? (
+            <Loader />
+          ) : (
+            imagesOnPage >= 12 && imagesOnPage < totalImages && (
+              <div style={{ opacity: isLoading ? 0.5 : 1 }}>
+                <Button onNextFetch={() => {
+                  this.setState({ isLoading: true });
+                  setTimeout(() => {
+                    onNextFetch();
+                    this.setState({ isLoading: false });
+                  }, 2000);
+                }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
+              </div> 
+            )
           )
-        )} */}
-
-{!this.state.query ? (
-  <div className={css.text}>Here is empty</div>
-) : (
-  isLoading ? (
-    <Loader />
-  ) : (
-    imagesOnPage >= 12 && imagesOnPage < totalImages && (
-      <div style={{ opacity: isLoading ? 0.5 : 1 }}>
-        <Button onNextFetch={() => {
-          this.setState({ isLoading: true });
-          setTimeout(() => {
-            onNextFetch();
-            this.setState({ isLoading: false });
-          }, 2000);
-        }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
-      </div> 
-    )
-  )
-)}
+        )}
 
         {showModal && (
           <Modal
