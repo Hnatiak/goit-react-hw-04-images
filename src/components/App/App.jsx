@@ -7,6 +7,9 @@ import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Loader from 'components/Loader';
 import Modal from 'components/Modal';
+import css from './App.module.css';
+
+
 
 class App extends Component {
   state = {
@@ -24,10 +27,21 @@ class App extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { query, page } = this.state;
-
+  
     if (prevState.query !== query) {
       this.setState(({ isLoading }) => ({ isLoading: !isLoading }));
-
+  
+      if (query === '') {
+        this.setState({
+          images: [],
+          imagesOnPage: 0,
+          totalImages: 0,
+          page: 1,
+          error: null,
+        });
+        return;
+      }
+  
       fetchImages(query)
         .then(({ hits, totalHits }) => {
           const imagesArray = hits.map(hit => ({
@@ -36,7 +50,7 @@ class App extends Component {
             smallImage: hit.webformatURL,
             largeImage: hit.largeImageURL,
           }));
-
+  
           return this.setState({
             page: 1,
             images: imagesArray,
@@ -123,11 +137,41 @@ class App extends Component {
 
         {images && <ImageGallery images={images} openModal={openModal} />}
 
-        {isLoading && <Loader />}
+        {/* {isLoading ? (
+          <Loader />
+        ) : (
+          imagesOnPage >= 12 && imagesOnPage < totalImages && (
+            <div style={{ opacity: isLoading ? 0.5 : 1 }}>
+              <Button onNextFetch={() => {
+                this.setState({ isLoading: true });
+                setTimeout(() => {
+                  onNextFetch();
+                  this.setState({ isLoading: false });
+                }, 2000);
+              }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
+            </div> 
+          )
+        )} */}
 
-        {imagesOnPage >= 12 && imagesOnPage < totalImages && (
-          <Button onNextFetch={onNextFetch} />
-        )}
+{!this.state.query ? (
+  <div className={css.text}>Here is empty</div>
+) : (
+  isLoading ? (
+    <Loader />
+  ) : (
+    imagesOnPage >= 12 && imagesOnPage < totalImages && (
+      <div style={{ opacity: isLoading ? 0.5 : 1 }}>
+        <Button onNextFetch={() => {
+          this.setState({ isLoading: true });
+          setTimeout(() => {
+            onNextFetch();
+            this.setState({ isLoading: false });
+          }, 2000);
+        }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
+      </div> 
+    )
+  )
+)}
 
         {showModal && (
           <Modal

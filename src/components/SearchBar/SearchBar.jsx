@@ -13,8 +13,24 @@ class SearchBar extends Component {
     query: '',
   };
 
+  // onChangeInput = e => {
+  //   const query = e.currentTarget.value;
+  
+  //   if (query !== this.state.query && this.props.onSubmit) {
+  //     this.props.onSubmit('');
+  //   }
+  
+  //   this.setState({ query });
+  // };
+
   onChangeInput = e => {
-    this.setState({ query: e.currentTarget.value });
+    const query = e.currentTarget.value;
+  
+    if (query !== this.state.query && this.props.onSubmit) {
+      this.props.onSubmit('');
+    }
+  
+    this.setState({ query, isLoading: query !== '' });
   };
 
   onSubmitForm = e => {

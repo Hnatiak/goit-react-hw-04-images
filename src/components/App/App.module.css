@@ -6,3 +6,10 @@
 .section__footer {
   background-color: var(--second-bg-color);
 }
+
+.text {
+  display: flex;
+  justify-content: center;
+  font-size: 120px;
+  padding-top: 50px;
+}
