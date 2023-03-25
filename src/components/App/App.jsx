@@ -1,174 +1,127 @@
-import { Component } from 'react';
-import { ToastContainer } from 'react-toastify';
+// import { Component } from 'react';
+// import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import fetchImages from '../../services/images-api';
+import {fetchImages} from '../../services/images-api';
 import SearchBar from 'components/SearchBar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Loader from 'components/Loader';
-import Modal from 'components/Modal';
+// import Modal from 'components/Modal';
 import css from './App.module.css';
+import { useState, useEffect } from 'react';
+import Notiflix from 'notiflix';
 
 
+export const App = () => {
+  const [searchName, setSearchName] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
-class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    imagesOnPage: 0,
-    totalImages: 0,
-    isLoading: false,
-    showModal: false,
-    images: null,
-    error: null,
-    currentImageUrl: null,
-    currentImageDescription: null,
+  const handleFormSubmit = searchName => {
+    setSearchName(searchName);
+    setPage(1);
+    setImages([]);
+    setIsLoading(true);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const { query, page } = this.state;
-  
-    if (prevState.query !== query) {
-      this.setState(({ isLoading }) => ({ isLoading: !isLoading }));
-  
-      if (query === '') {
-        this.setState({
-          images: [],
-          imagesOnPage: 0,
-          totalImages: 0,
-          page: 1,
-          error: null,
-        });
-        return;
-      }
-  
-      fetchImages(query)
-        .then(({ hits, totalHits }) => {
-          const imagesArray = hits.map(hit => ({
-            id: hit.id,
-            description: hit.tags,
-            smallImage: hit.webformatURL,
-            largeImage: hit.largeImageURL,
-          }));
-  
-          return this.setState({
-            page: 1,
-            images: imagesArray,
-            imagesOnPage: imagesArray.length,
-            totalImages: totalHits,
-          });
-        })
-        .catch(error => this.setState({ error }))
-        .finally(() =>
-          this.setState(({ isLoading }) => ({ isLoading: !isLoading }))
-        );
-    }
+  useEffect(() => {
+    if (searchName === '') return;
 
-    if (prevState.page !== page && page !== 1) {
-      this.setState(({ isLoading }) => ({ isLoading: !isLoading }));
+    fetchImages(searchName, page)
+      .then(data => {
+        if (data.hits.length === 0) {
+          Notiflix.Notify.failure(`Images not found!`);
+        } else {
+          setImages(prevImages => [...prevImages, ...data.hits]);
+        }
+      })
+      .catch(err => Notiflix.Notify.failure(err.message))
+      .finally(() => setIsLoading(false), 2000);
+  }, [searchName, page]);
 
-      fetchImages(query, page)
-        .then(({ hits }) => {
-          const imagesArray = hits.map(hit => ({
-            id: hit.id,
-            description: hit.tags,
-            smallImage: hit.webformatURL,
-            largeImage: hit.largeImageURL,
-          }));
+const onLoadMore = () => {
+  setIsLoading(true);
+  setTimeout(() => {
+    setPage(page + 1);
+    setIsLoading(false);
+  }, 2000);
+};
 
-          return this.setState(({ images, imagesOnPage }) => {
-            return {
-              images: [...images, ...imagesArray],
-              imagesOnPage: imagesOnPage + imagesArray.length,
-            };
-          });
-        })
-        .catch(error => this.setState({ error }))
-        .finally(() =>
-          this.setState(({ isLoading }) => ({ isLoading: !isLoading }))
-        );
-    }
-  }
+return (
+    <div className={css.App}>
+      <SearchBar handleFormSubmit={handleFormSubmit} setInputValue={setInputValue} />
+      {inputValue.trim() === '' && images.length === 0 && <div className={css.text}>Here is empty</div>}
+      <ImageGallery images={images} />
+      <Loader isLoading={isLoading} />
+      {!isLoading && images.length > 0 && <Button loadMore={onLoadMore} />}
+    </div>
+  );
+};
 
-  getSearchRequest = query => {
-    this.setState({ query });
-  };
-
-  onNextFetch = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
-  };
-
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
-  };
-
-  openModal = e => {
-    const currentImageUrl = e.target.dataset.large;
-    const currentImageDescription = e.target.alt;
-
-    if (e.target.nodeName === 'IMG') {
-      this.setState(({ showModal }) => ({
-        showModal: !showModal,
-        currentImageUrl: currentImageUrl,
-        currentImageDescription: currentImageDescription,
-      }));
-    }
-  };
-
-  render() {
-    const {
-      images,
-      imagesOnPage,
-      totalImages,
-      isLoading,
-      showModal,
-      currentImageUrl,
-      currentImageDescription,
-    } = this.state;
-
-    const getSearchRequest = this.getSearchRequest;
-    const onNextFetch = this.onNextFetch;
-    const openModal = this.openModal;
-    const toggleModal = this.toggleModal;
-
-    return (
-      <>
-        <SearchBar onSubmit={getSearchRequest} />
-
-        {images && <ImageGallery images={images} openModal={openModal} />}
-
-        {!this.state.query ? (
-          <div className={css.text}>Here is empty</div>
-        ) : (
-          isLoading ? (
-            <Loader />
-          ) : (
-            imagesOnPage >= 12 && imagesOnPage < totalImages && (
-              <div style={{ opacity: isLoading ? 0.5 : 1 }}>
-                <Button onNextFetch={() => {
-                  this.setState({ isLoading: true });
-                  setTimeout(() => {
-                    onNextFetch();
-                    this.setState({ isLoading: false });
-                  }, 2000);
-                }} style={{ visibility: isLoading ? "hidden" : "visible" }} />
-              </div> 
-            )
-          )
-        )}
-
-        {showModal && (
-          <Modal
-            onClose={toggleModal}
-            currentImageUrl={currentImageUrl}
-            currentImageDescription={currentImageDescription}
-          />
-        )}
-
-        <ToastContainer />
-      </>
-    );
-  }
-}
 
 export default App;
+
+// import 'react-toastify/dist/ReactToastify.css';
+// import { fetchImages } from '../../services/images-api';
+// import SearchBar from 'components/SearchBar';
+// import ImageGallery from 'components/ImageGallery';
+// import Button from 'components/Button';
+// import Loader from 'components/Loader';
+// import css from './App.module.css';
+// import { useState, useEffect } from 'react';
+// import Notiflix from 'notiflix';
+
+// export const App = () => {
+//   const [searchName, setSearchName] = useState('');
+//   const [page, setPage] = useState(1);
+//   const [images, setImages] = useState([]);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [inputValue, setInputValue] = useState('');
+
+//   const handleFormSubmit = (searchName) => {
+//     setSearchName(searchName);
+//     setPage(1);
+//     setImages([]);
+//     setIsLoading(true);
+//   };
+
+//   useEffect(() => {
+//     if (searchName === '') {
+//       setImages([]);
+//       return;
+//     }
+
+//     fetchImages(searchName, page)
+//       .then((data) => {
+//         if (data.hits.length === 0) {
+//           Notiflix.Notify.failure(`Images not found!`);
+//         } else {
+//           setImages((prevImages) => [...prevImages, ...data.hits]);
+//         }
+//       })
+//       .catch((err) => Notiflix.Notify.failure(err.message))
+//       .finally(() => setIsLoading(false));
+//   }, [searchName, page]);
+
+//   const onLoadMore = () => {
+//     setIsLoading(true);
+//     setTimeout(() => {
+//       setPage(page + 1);
+//       setIsLoading(false);
+//     }, 2000);
+//   };
+
+//   return (
+//     <div className={css.App}>
+//       <SearchBar handleFormSubmit={handleFormSubmit} setInputValue={setInputValue} />
+//       {(inputValue.trim() === '' && images.length === 0) && <p className={css.text}>Here is empty</p>}
+//       <ImageGallery images={images} />
+//       <Loader isLoading={isLoading} />
+//       {!isLoading && images.length > 0 && <Button loadMore={onLoadMore} />}
+//     </div>
+//   );
+// };
+
+// export default App;

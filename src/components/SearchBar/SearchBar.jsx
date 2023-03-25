@@ -1,75 +1,54 @@
-import { Component } from 'react';
+// import { Component } from 'react';
 import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
+// import { toast } from 'react-toastify';
 import { FaSearch } from 'react-icons/fa';
 import css from './SearchBar.module.css';
+import Notiflix from 'notiflix';
+import { useState } from 'react';
 
-class SearchBar extends Component {
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
+export const SearchBar = ({ handleFormSubmit }) => {
+  const [searchName, setSearchName] = useState('');
+
+  const handleChange = e => {
+    const inputValue = e.target.value;
+    setSearchName(inputValue);
   };
 
-  state = {
-    query: '',
-  };
-
-  // onChangeInput = e => {
-  //   const query = e.currentTarget.value;
-  
-  //   if (query !== this.state.query && this.props.onSubmit) {
-  //     this.props.onSubmit('');
-  //   }
-  
-  //   this.setState({ query });
-  // };
-
-  onChangeInput = e => {
-    const query = e.currentTarget.value;
-  
-    if (query !== this.state.query && this.props.onSubmit) {
-      this.props.onSubmit('');
-    }
-  
-    this.setState({ query, isLoading: query !== '' });
-  };
-
-  onSubmitForm = e => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    const { onSubmit } = this.props;
-    const { query } = this.state;
-
-    if (query.trim() === '') {
-      toast.error('Enter a search term.');
+    if (searchName === '') {
+      Notiflix.Notify.failure(`Enter a query!`);
       return;
     }
 
-    onSubmit(query);
+    handleFormSubmit(searchName);
+    setSearchName('');
   };
 
-  render() {
-    const { query } = this.state;
+  return (
+    <header className={css.header}>
+      <form className={css.form} onSubmit={handleSubmit}>
+        <button type="submit" className={css.button}>
+          {/* <span className={css.SearchFormButtonLabel}>Search</span> */}
+          <FaSearch size={12}/>
+        </button>
+        <input
+          className={css.input}
+          name="input"
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleChange}
+        />
+      </form>
+    </header>
+  );
+};
 
-    return (
-      <header className={css.header}>
-        <form className={css.form} onSubmit={this.onSubmitForm}>
-          <button className={css.button} type="submit">
-            <FaSearch size={12} />
-          </button>
-
-          <input
-            className={css.input}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={query}
-            onChange={this.onChangeInput}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+SearchBar.propTypes = {
+  handleFormSubmit: PropTypes.func.isRequired,
+};
 
 export default SearchBar;
