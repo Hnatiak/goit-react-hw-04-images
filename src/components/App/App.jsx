@@ -23,12 +23,12 @@ export const App = () => {
     setSearchName(searchName);
     setPage(1);
     setImages([]);
-    setIsLoading(true);
   };
 
   useEffect(() => {
+    setIsLoading(true);
     if (searchName === '') return;
-
+  
     fetchImages(searchName, page)
       .then(data => {
         if (data.hits.length === 0) {
@@ -38,16 +38,12 @@ export const App = () => {
         }
       })
       .catch(err => Notiflix.Notify.failure(err.message))
-      .finally(() => setIsLoading(false), 2000);
+      .finally(() => setIsLoading(false));
   }, [searchName, page]);
-
-const onLoadMore = () => {
-  setIsLoading(true);
-  setTimeout(() => {
-    setPage(page + 1);
-    setIsLoading(false);
-  }, 2000);
-};
+  
+  const onLoadMore = () => {
+    setPage(page => page + 1);
+  };
 
 return (
     <div className={css.App}>
@@ -55,7 +51,7 @@ return (
       {inputValue.trim() === '' && images.length === 0 && <div className={css.text}>Here is empty</div>}
       <ImageGallery images={images} />
       <Loader isLoading={isLoading} />
-      {!isLoading && images.length > 0 && <Button loadMore={onLoadMore} />}
+      {!isLoading && images.length > 0 && <Button isLoading={isLoading} loadMore={onLoadMore} />}
     </div>
   );
 };
